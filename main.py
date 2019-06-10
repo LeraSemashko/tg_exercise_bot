@@ -10,7 +10,7 @@ PROXY = get_proxy('proxy_telegram.txt')
 print('Proxy: ', PROXY)
 telepot.api.set_proxy('https://' + PROXY)
 
-TOKEN = '836566144:AAErfPxlHsr1lZo1WMu5G7CO4u6WR1zmawQ'
+TOKEN = '864204534:AAFmnFH-UKb3Mb44U9Bpkh_MnM20Ru-un4o'
 
 import telepot
 import telepot.helper
