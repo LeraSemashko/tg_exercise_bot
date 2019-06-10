@@ -1,8 +1,3 @@
-import time
-import os
-import re
-import datetime
-
 import telepot.api
 from proxy_funcs import get_proxy
 
@@ -10,14 +5,20 @@ PROXY = get_proxy('proxy_telegram.txt')
 print('Proxy: ', PROXY)
 telepot.api.set_proxy('https://' + PROXY)
 
+
+
 TOKEN = '864204534:AAFmnFH-UKb3Mb44U9Bpkh_MnM20Ru-un4o'
+
+import time
+import os
+import re
 
 import telepot
 import telepot.helper
 from telepot.loop import MessageLoop
 from telepot.namedtuple import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telepot.delegate import (
-    per_chat_id, create_open, pave_event_space, call)
+    per_chat_id, create_open, pave_event_space)
 
 from exercises_info import exercises_info_text
 
@@ -62,8 +63,6 @@ muscles_groups_exercises = {
              "Sit Up", "Hanging Leg Raise", "Plank"]
         }
 
-    
-
 muscle_groups = ["Legs - Thighs (Quadriceps)",
                 "Legs - Back of Thighs (Hamstrings)",
                 "Legs - calves",
@@ -81,9 +80,6 @@ class ExercisesBot(telepot.helper.ChatHandler):
         super().__init__(seed_tuple=seed_tuple, include_callback_query=True, **kwargs)
         self.tg_commands = {}  # команды (начинаются с /)
         self.add_command("/start", self.start_bot)
-        self.notification_end_datetime = None
-        self.next_notification_datetime = None
-        self.exercise_for_notifications = None
         
     def parse_cmd(self, cmd_string):
         text_split = cmd_string.split()
@@ -113,7 +109,6 @@ class ExercisesBot(telepot.helper.ChatHandler):
         send_str = f'Exercises for {muscles_group}:\n'
         for exercise in muscles_groups_exercises[muscles_group]:
             exercise_command = '/exercise\\_' + '\\_'.join(exercise.lower().split(' '))
-            print(exercise_command)
             send_str += exercise + ' ' + exercise_command + '\n'
         self.sender.sendMessage(send_str, parse_mode="Markdown", reply_markup=ReplyKeyboardRemove())
 
@@ -128,7 +123,6 @@ class ExercisesBot(telepot.helper.ChatHandler):
         exercises_images = list(filter(lambda filename: filter_exercises_images(filename, exercise), os.listdir(IMAGES_DIR)))
 
         for imagename in exercises_images:
-            print(imagename)
             img_path = os.path.join(IMAGES_DIR, imagename)
             with open(img_path, 'rb') as f:
                 img = f
@@ -151,7 +145,6 @@ class ExercisesBot(telepot.helper.ChatHandler):
             if msg_text[0] == '/':
                 # если начинается с /, то команда
                 cmd, params = self.parse_cmd(msg_text)
-                print(cmd)
                 if cmd.startswith('/exercise'):
                     exercise = cmd.replace('/exercise_', '')
                     self.send_exercise_info(exercise)
@@ -161,11 +154,8 @@ class ExercisesBot(telepot.helper.ChatHandler):
                 except KeyError:
                     self.sender.sendMessage("Unknown command: {cmd}".format(cmd=cmd))
                
-            #  когда пользователь нажимает на кнопки в keyboard,
-            #  в зависимости от текущего шага вызываем функцию
             elif self.step == 'choose_muscles_group':
                 muscles_group = msg_text
-                #self.send_muscles_group_info(muscles_group)
                 self.send_exercises(muscles_group)
             elif self.step == 'send_exercise_info':
                 if msg_text == 'Set notification':
@@ -183,34 +173,6 @@ class ExercisesBot(telepot.helper.ChatHandler):
         self.sender.sendMessage("Notification about exercise {0}".format(exercise))
 
 
-
-    '''
-    def set_notification(self, exercise):
-        exercise_unformatted = exercise.replace('_', ' ').capitalize()
-        self.exercise_for_notifications = exercise_unformatted
-        now = datetime.datetime.now()
-        self.next_notification_datetime = now + datetime.timedelta(days=1)
-        self.notification_end_datetime = now + datetime.timedelta(days=7)
-        
-    def check_notification(self):
-        print('check_notification')
-        now = datetime.datetime.now()
-        if self.exercise_for_notifications is not None:
-            if now > self.next_notification_datetime and now < self.notification_end_datetime:
-                self.sender.sendMessage("Notification about exercise {0}".format(self.exercise_for_notifications))
-            if now > self.notification_end_datetime:
-                self.notification_end_datetime = None
-                self.next_notification_datetime = None
-                self.exercise_for_notifications = None
-        time.sleep(2)
-        #self.check_notification()
-    '''
-            
-def shit():
-    print('shit')
-    time.sleep(2)
-    shit()
-     
 bot = telepot.DelegatorBot(TOKEN, [
     pave_event_space()(
         per_chat_id(), create_open, ExercisesBot, timeout=1000000000000000000),
